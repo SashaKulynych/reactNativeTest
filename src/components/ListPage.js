@@ -4,21 +4,22 @@ import {
     StyleSheet,ScrollView,Image,StatusBar,ToolbarAndroid,RefreshControl,View,TextInput,ListView
 } from 'react-native';
 import { Container, Header, Item, Input, Icon, Button, Text, Fab } from 'native-base';
-
+let  ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => r1 !== r2 } );
 class ListPage extends Component {
     constructor(){
         super();
         this.state={
-            dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
-            rawData:{},
+            dataSource:ds,
+            rawData:[],
             searchText:'',
             refreshing:false,
             updateTime:'',
             value:0,
             active: false,
-            searchData:{}
-        };
+            searchData:[]}
+        ;
         this._renderRow = this._renderRow.bind(this);
+        this.listSortTitle = this.listSortTitle.bind(this);
         console.log('Constructor');
     }
     getNotes() {
@@ -33,7 +34,7 @@ class ListPage extends Component {
         this.getNotes()
             .then((data) => {
                 this.setState({
-                    dataSource: this.state.dataSource.cloneWithRows(data),
+                    dataSource: ds.cloneWithRows(data),
                     isLoading: false,
                     empty: false,
                     rawData: data,
@@ -41,6 +42,9 @@ class ListPage extends Component {
                     refreshing:false,
                     updateTime : new Date().toLocaleString()
                 });
+                console.log(this.state.dataSource);
+                console.log(this.state.rawData);
+                console.log(this.state.searchData);
             })
             .catch((error) => {
             });
@@ -55,13 +59,14 @@ class ListPage extends Component {
         });
         this.setState({
             searchData:newData,
-            dataSource:this.state.dataSource.cloneWithRows(newData),
+            dataSource:ds.cloneWithRows(newData),
             searchText: text
         });
     }
     listSortTitle(){
         let data = this.state.searchData;
-        const newData = data.sort((a, b)=>{
+
+        let newData = data.sort((a, b)=>{
                 if (a.title > b.title)
                     return 1;
                 if (a.title < b.title)
@@ -69,7 +74,7 @@ class ListPage extends Component {
                 return 0;
             });
         this.setState({
-            dataSource:newData
+            dataSource:ds.cloneWithRows(newData),
         });
     }
     listSortId(){
@@ -82,7 +87,7 @@ class ListPage extends Component {
                 return 0;
             });
         this.setState({
-            dataSource:newData
+            dataSource:ds.cloneWithRows(newData),
         });
     }
     _renderRow(rowData){
